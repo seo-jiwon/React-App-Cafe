@@ -1,50 +1,174 @@
-//import * as React  from 'react';
-import { React, useEffect, useState, useRef } from "react";
-import { Pressable, Image, Text, View, StyleSheet, TextInput, Button, ScrollView, Alert, TouchableOpacity, TouchableHighlight } from 'react-native';
+import * as React from 'react';
+import {useRef, useEffect} from 'react';
+import  {useState} from 'react';
+import { Text, View, StyleSheet, TextInput, Button, ScrollView, Alert ,Pressable, SafeAreaView} from 'react-native';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 
-var idTest = 0;
-var idMsgTest = '';
-let idClickCnt = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 
 export default function App() {
-  var seatArray = [1,2,3,4,5,6,7,8,9];
-
-  const [isSelect, setSelect] = useState([false, false, false, false, false, false, false, false, false]);
-
-  const [test, setTest] = useState('');
-  const [clickNum, setClickNum] =  useState(null);
-  const [imageState, setImageState] = useState(require('./images/1.png'));
-  const [defaultIcon, setIcon] = useState('minussquareo');
-  const [textColor, setTextColor] = useState('black'); // 글자색 상태
-  const [colorState, setColorState] = useState('white'); // 배경색 상태
-  const [serverState, setServerState] = useState('Loading...'); // 서버 상태 메시지
-  const [messageText, setMessageText] = useState(''); // 초기 TextInput 문자 상태
-  const [disableButton, setDisableButton] = useState(true); // 초기 버튼 비활성화
-  const [inputFieldEmpty, setInputFieldEmpty] = useState(true); // TextInput 비었는지 상태
-  const [serverMessages, setServerMessages] = useState([]); // 서버 메시지 리스트
+  const [seatClickTable, setSeatClickTable] = React.useState([]); // 클릭한 좌석 정보를 테이블에 저장
+  const [serverState, setServerState] = React.useState('Loading...'); // 서버 상태 메시지
+  const [messageText, setMessageText] = React.useState(''); // 초기 TextInput 문자 상태
+  const [disableButton, setDisableButton] = React.useState(true); // 초기 버튼 비활성화
+  const [inputFieldEmpty, setInputFieldEmpty] = React.useState(true); // TextInput 비었는지 상태
+  const [serverMessages, setServerMessages] = React.useState([]); // 서버 메시지 리스트
+  const inputRef = React.useRef(null);
   //var ws = React.useRef(new WebSocket('ws://10.32.15.49:8887')).current;
   // useRef() Hook : current 속성을 가지고 있는 객체 반환 -> ??
 
-  const websocketUrl = 'ws://127.0.0.1:8001';
-  //const websocketUrl = 'ws://10.32.15.203:8887';
-  let ws = useRef(null);
-  
+  //윤경
+  //const websocketUrl = 'ws://10.32.14.112:8080';
+  //지원
+  const websocketUrl = 'ws://10.32.12.158:8080';
+  //지원
+  //const websocketUrl = 'ws://127.0.0.1:8080';
+  //교수님
+  //const websocketUrl = 'ws://172.30.1.81:8080';
+
+  let ws = React.useRef(null);  
+  const [isSelect, setSelect] = useState([false, false, false, false, false, false, false, false, false]);
+  var name = '서지원';
+  var data = {};
+  var sendData = [];
+
+  const getButton = (id) => {
+    console.log(ws.current);
+   
+    return (
+      <Pressable
+        style={[
+          styles.buttonContainer,
+          {backgroundColor: isSelect[id] ? '#eeccff' : 'white'},
+        ]}
+        onPress={() => {
+          console.log('onPress');
+          // console.log(isSelect[0]);
+
+          //예약
+          if ( isSelect[id] == false ) {
+            Alert.alert(
+              id+1 + "번 좌석을 예약하시겠습니까?", // 타이틀
+              "",                             // 소제목
+              [                              // 버튼 배열
+                {
+                  text: "아니요",                              // 버튼 제목
+                  onPress: () => console.log("예약 아니요"),     //onPress 이벤트시 콘솔창에 로그를 찍는다
+                  style: "cancel"
+                },
+                { text: "네", onPress: () => 
+                  {
+                    if(ws.current !== null){
+                            // var data = {};
+                            // var sendData = [];
+                            data['id'] = name;
+                            if(isSelect[id] == false){
+                            data['req'] = 'res';
+                            }else{
+                              data['req'] = 'can';
+                            }
+                            data['tnum'] = id;
+                            sendData.push(data);
+                            var jsonData =JSON.stringify(sendData);
+                            ws.current.send(jsonData);
+                    }
+                  }
+                },
+                                                                      // 이벤트 발생시 로그를 찍는다
+              ],
+              { cancelable: false }
+            );
+          } 
+          // 예약 취소
+          else {
+            Alert.alert(
+              id+1 + "번 좌석을 예약 취소 하시겠습니까?", // 타이틀
+              "",                             // 소제목
+              [                              // 버튼 배열
+                {
+                  text: "아니요",                              // 버튼 제목
+                  onPress: () => console.log("예약 취소 아니요"),     //onPress 이벤트시 콘솔창에 로그를 찍는다
+                  style: "cancel"
+                },
+                { text: "네", onPress: () => 
+                  {
+                    if(ws.current !== null){
+                      for(var i=0; i<seatClickTable.length; i++) {
+                        if(seatClickTable[i].tnum == id) {
+                          if(seatClickTable[i].id == name) {
+                            var data = {};
+                            var sendData = [];
+                            data['id'] = name;
+                            if(isSelect[id] == false){
+                            data['req'] = 'res';
+                            }else{
+                              data['req'] = 'can';
+                            }
+                            data['tnum'] = id;
+                            sendData.push(data);
+                            var jsonData =JSON.stringify(sendData);
+                            ws.current.send(jsonData);
+                            
+                            break;
+                          }
+                          else {
+                            alert('본인이 예약한 좌석이 아닙니다.');
+                            break;
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+              ],
+              { cancelable: false }
+            );
+          }
+        }}>
+        <Text>{id+1}</Text>
+      </Pressable>
+    );
+  };
+
+  const revSelect = (id,flag) => {
+    isSelect[id] = flag; 
+    setSelect([
+       isSelect[0],
+       isSelect[1],
+       isSelect[2],
+       isSelect[3],
+       isSelect[4],
+       isSelect[5],
+       isSelect[6],
+       isSelect[7],
+       isSelect[8],
+     ]);
+  }
+
   // 컴포넌트가 렌더링 될 때마다 작업을 실행할 수 있도록 하는 Hook
   // useEffect Hook 최초 1회 웹소켓 정의 -> 다른 함수에서 웹소켓 인스턴스 사용x -> useRef 사용
-  useEffect(() => {
+  React.useEffect(() => {
+   
     if(!ws.current) {
       ws.current = new WebSocket(websocketUrl);
       const serverMessagesList = [];
       // 웹소켓 열리면 서버와 연결되고 비활성화 버튼 false 처리
       ws.current.onopen = () => {
-        setServerState('연결 성공 - zion')
+        setServerState('연결성공 - 지원')
         setDisableButton(false);
+        var data = {};
+        var sendData = [];
+        data['id'] = name;
+        data['req'] = 'con';
+        sendData.push(data);
+        var jsonData =JSON.stringify(sendData);
+        ws.current.send(jsonData);
+
       };
       // 웹소켓 닫히면 버튼 비활성화 true 처리
       ws.current.onclose = (e) => {
-        setServerState('연결 종료 - zion')
+      
+        setServerState('연결 종료 - 지원')
         setDisableButton(true);
       };
       // 에러 발생 시 에러 메시지
@@ -55,88 +179,60 @@ export default function App() {
       ws.current.onmessage = (e) => {
         // 서버 메시지 리스트에 텍스트 값(스크롤뷰에 작성된)을 넣음
         serverMessagesList.push(e.data);
-        setServerMessages([...serverMessagesList])
+        console.log("서버메시지: " + e.data);
+        setServerMessages([...serverMessagesList]);
+        console.log('message');
+        jsonRev = JSON.parse(e.data);
+
+        for(var i =0 ; i< jsonRev.length;i++){
+          if(jsonRev[i].req == 'res'){
+            revSelect(jsonRev[i].tnum,true);
+            resTable(jsonRev[i]); //3개정보
+          }else if(jsonRev[i].req == 'can'){
+            revSelect(jsonRev[i].tnum,false);
+            canTable(jsonRev[i]);
+          }
+        }
+
+
+
+       /* var testString =e.data;   // 원래 문자열
+        var regex = /[^0-9]/g;            // 숫자가 아닌 문자열을 선택하는 정규식
+        var result = testString.replace(regex, "");   */
       };
     }
     
   }, [])
 
+  const resTable = (jsonRev) => {
+    tableInfo= {};
+    tableInfo['tnum'] = jsonRev.tnum;
+    tableInfo['id'] = jsonRev.id;
+    tableInfo['req'] = jsonRev.req;
+    seatClickTable.push(tableInfo);
+  }
+
+  const canTable = (jsonRev) => {
+    for (var i=0; i<seatClickTable.length; i++) {
+      if(seatClickTable[i].tnum == jsonRev.tnum){
+        seatClickTable.splice(i,1);
+        break;
+      }
+    }
+  }
+
   // 버튼 클릭 시 호출되는 함수
-  const submitMessage = () => {
-    //ws.send('hello zion');
-    ws.current.send(messageText); // TextInput에 입력된 값(messageText)을 웹소켓에 전송
+  
+  const submitMessage = (e) => {
+    ws.current.send(messageText);
+    console.log();    
+   // document.getElementById("b").color="red";
+   /* ws.current.send(messageText); // TextInput에 입력된 값(messageText)을 웹소켓에 전송
     setMessageText('') // TextInput '' 로 변경
-    setInputFieldEmpty(true) // TextInput 비어도 된다
+    setInputFieldEmpty(true) // TextInput 비어도 된다*/
+  //  Alert.alert('좌석 예약이 완료되었습니다!');
+  
   }
-
-
-  const submitBtn = () => {
-    idClickCnt[idTest] -= 1;
-    ws.current.send(idTest+1 +'번 예약 완료!');
-    Alert.alert('좌석 예약이 완료되었습니다!');
-  }
-
-  const getButton = (id) => {
-    return (
-      <Pressable
-        style={[
-          styles.buttonContainer,
-          {backgroundColor: isSelect[id] ? 'pink' : 'white'},
-        ]}
-        onPress={() => {
-          idClickCnt[id] += 1;
-          console.log('클릭횟숭ㅇ' + idClickCnt[id] + '몇번인덱스' +id);
-
-          idTest = id; // 몇번 클릭 했는지 완료 버튼에 전송하기위해서 사용
-          idMsgTest = id + 1 + '번 대기'; // 완료 버튼 누르기 전에 대기 상태 알리기 위한 문자
-
-          // 좌석 클릭한 횟수가 2번일 때 해제되게 하기 위해서
-          if(idClickCnt[idTest] > 1) {
-            idClickCnt[idTest] -= 1;
-            console.log('클릭횟수'+idClickCnt[idTest]);
-            console.log('몇번인덱스'+ idTest);
-            ws.current.send(idTest+1 + '번 대기 해제');
-          }
-          // 좌석 클릭한 횟수가 2번 외에 1번 일 때
-          else if (idClickCnt[idTest] = 1){
-            console.log('몇번인덱스'+ idTest);
-            console.log('클릭횟수'+idClickCnt[idTest]);
-            idClickCnt[idTest] += 1;
-            ws.current.send(idTest+1 + '번 대기');
-          }
-          setSelect([
-            ...isSelect.slice(0, id),
-            !isSelect[id],
-            ...isSelect.slice(id + 1),
-          ]);
-          
-          //두 번 눌렀을때 해제
-
-        }}>
-        <Text>{id+1}</Text>
-      </Pressable>
-    );
-  };
-
-  //아이콘 변경
-  const iconClick = () => {
-    setIcon(defaultIcon === 'minussquareo' ? 'closesquare' : 'minussquareo')
-
-  }
-
-  //TouchableOpacity 변경
-  // function seatClick(idx) {
-  //   return alert(idx);
-
-  //   // setTextColor(textColor === 'black' ? 'white' : 'black');
-  //   // setColorState(colorState === 'white' ? 'grey' : 'white');
-  //  }
-
-   //이미지 변경
-   const imageClick = () => {
-    setImageState(imageState === require('./images/1.png') ? require('./images/2.png') : require('./images/1.png'));
-   }
-
   return (
     <View>
       <View style={{
@@ -155,7 +251,7 @@ export default function App() {
         borderWidth: 1,
         borderColor: 'grey',
         padding: 5,
-        height: 400,
+        height: 300,
       }}>
         <Text style={{ color: 'grey' }}>서버메시지</Text>
         <ScrollView>
@@ -209,64 +305,25 @@ export default function App() {
           </Text>
         </View>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 25 }}>
         {/* <View style={{ flexDirection: 'row', justifyContent: 'center' }}> */}
           {getButton(0)}
           {getButton(1)}
           {getButton(2)}
+          </View>
+
+          <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 5 }}>
+        {/* <View style={{ flexDirection: 'row', justifyContent: 'center' }}> */}
           {getButton(3)}
           {getButton(4)}
           {getButton(5)}
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 5 }}>
+        {/* <View style={{ flexDirection: 'row', justifyContent: 'center' }}> */}
           {getButton(6)}
           {getButton(7)}
           {getButton(8)}
-
-          {/* {
-            seatArray.map((item, idx) => {
-              return (
-                <TouchableOpacity  key={idx} 
-                style={{ backgroundColor:colorState, width: 30, height: 30, marginRight: 10, borderWidth: 1, borderColor: 'grey', 
-                borderRadius: 5, marginTop: 20, shadowColor: "#000000",shadowOpacity: 0.3, shadowOffset: { width: 2, height: 2 } }}
-                  //onPress={seatClick(idx)}  
-                //onPress={seatClick}
-                  //onPress={()=> {seatClick()}}
-                  onPress={()=> {seatClick(idx)}}
-                  >
-                    <Text key={idx} style={{color:textColor}}>{item}</Text>
-                </TouchableOpacity>
-              )
-            })
-          } */}
-        </View>
-        {/* 아이콘 */}
-        {/* <View style={{ flexDirection: 'row' }}>
-          <Ionicons name="md-square-outline" style={{fontSize: 43}} />
-          <AntDesign name={defaultIcon} style={{fontSize: 40, marginTop: 3}} onPress={iconClick}/>
-          <AntDesign name="closesquare" style={{fontSize: 40, marginTop: 3, marginLeft: 4}} />
-        </View> */}
-
-        {/* 이미지 */}
-        {/* <View style={{ flexDirection: 'row' }}>
-          <TouchableOpacity onPress={imageClick}>
-            <Image source={imageState}/>
-          </TouchableOpacity>
-          
-          <Image source={require('./images/2.png')}/>
-          <Image source={require('./images/3.png')}/>
-        </View> */}
-
-        <View style={{marginTop: 100, marginLeft: '37%', width: 100, borderColor: '#89008C', borderWidth: 1, borderRadius: 20,
-        shadowColor: "#89008C",shadowOpacity: 0.3, shadowOffset: { width: 2, height: 2 }}}>
-        <Button style={{marginTop: 50}}
-          title="완료"
-          color="black"
-          backgroundColor="pink"
-          onPress={submitBtn}
-          //onPress={()=> {alert("좌석을 선택해주세요.")}}
-          ></Button>
-        </View>
-
-
+          </View>
       </View>
     </View>
   );
@@ -281,15 +338,15 @@ const styles = StyleSheet.create({
     buttonContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    width: 30,
-    height: 30,
+    width: 60,
+    height: 60,
     borderRadius: 5,
-    marginLeft: 10,
-    marginTop: 10,
+    marginLeft: 15,
+    marginTop: 15,
     borderWidth: 0.5,
     borderColor: 'white',
     shadowColor: "#000000",
     shadowOpacity: 0.3, 
-    shadowOffset: { width: 1, height: 1 }
+    shadowOffset: { width: 1, height: 1 },
   },
 });
