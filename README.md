@@ -55,4 +55,4 @@ $ node server.js
 <br/>
 
 ## 테스트 환경
-- Simulator Version ~
+- iOS simulator iPhone14 iOS 16.0
